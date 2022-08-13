@@ -6,7 +6,7 @@ program
   // 程序的指令名
   .name("server")
   // 用法
-  .usage("[path] [options");
+  .usage("[path] [options]");
 const usageList = [];
 Object.entries(config).forEach(([key, value]) => {
   program.option(`${value.option}`, `${value.description}`, `${value.default}`);
