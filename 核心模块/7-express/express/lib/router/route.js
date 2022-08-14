@@ -1,16 +1,17 @@
 const Layer = require("./layer");
-
+const methods = require("methods");
 /**
  *
  */
 class Route {
-  #stack = [];
+  stack = [];
+  methods = {};
   get(handlers) {
     handlers.forEach((handler) => {
       // path用不到
       const layer = new Layer("*", handler);
       layer.method = "GET";
-      this.#stack.push(layer);
+      this.stack.push(layer);
     });
   }
   /**
@@ -23,11 +24,14 @@ class Route {
     let idx = 0;
     const routeNext = () => {
       // 执行下一个path layer
-      if (idx >= this.#stack.length) return next(req, res);
+      if (idx >= this.stack.length) return next(req, res);
       // 拿到route layer
-      const routerLayer = this.#stack[idx++];
-      if (routerLayer.method === req.method.toUpperCase()) {
-        routerLayer.handle(req, res, routeNext); // 用户的回调
+      const routerLayer = this.stack[idx++];
+      if (
+        routerLayer.method === req.method.toLowerCase() ||
+        routerLayer.method === "all"
+      ) {
+        routerLayer.handleRequest(req, res, routeNext); // 用户的回调
       } else {
         routeNext();
       }
@@ -35,5 +39,17 @@ class Route {
     routeNext();
   }
 }
+methods.concat("all").forEach((method) => {
+  Route.prototype[method] = function (handlers) {
+    // /增加标识
+    this.methods[method] = true;
+    handlers.forEach((handler) => {
+      // path用不到
+      const layer = new Layer("*", handler);
+      layer.method = method;
+      this.stack.push(layer);
+    });
+  };
+});
 module.exports = Route;
 // 每个路由系统中 都会对应一个route

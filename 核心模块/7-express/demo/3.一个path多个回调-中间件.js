@@ -6,7 +6,7 @@ app.get(
   (req, res, next) => {
     console.log("1");
     // next();
-    res.end('1')
+    res.end("1");
   },
   (req, res, next) => {
     console.log("2");
@@ -25,6 +25,11 @@ app.get("/", (req, res) => {
 app.get("/user", (req, res) => {
   res.setHeader("content-type", "text/plain;charset=utf8");
   res.end("user");
+});
+
+app.all("/all", (req, res) => {
+  console.log("all");
+  res.end("all");
 });
 
 // 启动服务

@@ -1,6 +1,7 @@
 const url = require("url");
 const Layer = require("./layer");
 const Route = require("./route");
+const methods = require("methods");
 /**
  * 实现路由和应用的分离
  */
@@ -18,16 +19,10 @@ class Router {
     return route;
   }
   get(path, handlers) {
-    // this.#stack.push({
-    //   path,
-    //   handler,
-    //   method: "GET",
-    // });
     // 需要先产生route才能创建layer
     const route = this.route(path);
     route.get(handlers); // 将用户的回调传递给了route路由表中
   }
-  post(path, handlers) {}
   /**
    *
    * @param {*} req
@@ -35,24 +30,22 @@ class Router {
    * @param {Function} out 请求处理不了时调用的方法
    */
   handle(req, res, out) {
-    // const reqMethod = req.method;
     const { pathname: reqUrl } = url.parse(req.url);
-    // for (const route of this.#stack) {
-    //   const { path, handler, method } = route;
-    //   if (path === reqUrl && reqMethod.toUpperCase() === method) {
-    //     return handler(req, res);
-    //   }
-    // }
-    // out(req, res);
     // 请求到来后，我们需要去stack中进行筛查
     let idx = 0;
     const next = () => {
       // 没找到
       if (idx >= this.#stack.length) return out(req, res);
       const layer = this.#stack[idx++];
-      if (layer.path === reqUrl) {
+      if (
+        layer.match(reqUrl) &&
+        (
+          layer.route.methods[req.method.toLowerCase()] // 有没有这种类型的请求
+          || layer.route.methods['all'] // all标识所有类型请求都可以
+        )
+      ) {
         // 路径匹配了 交给route来处理 如果route处理完 可以调用next从上一个layer到下一个layer
-        layer.handle(req, res, next); // dispatch
+        layer.handleRequest(req, res, next); // dispatch
       } else {
         next();
       }
@@ -60,4 +53,11 @@ class Router {
     next();
   }
 }
+methods.concat("all").forEach((method) => {
+  Router.prototype[method] = function (path, handlers) {
+    // 需要先产生route才能创建layer
+    const route = this.route(path);
+    route[method](handlers); // 将用户的回调传递给了route路由表中
+  };
+});
 module.exports = Router;
