@@ -16,9 +16,9 @@ class Application {
     // 存放路由表 每个应用都有自己单独的路由
     this.router = new Router();
   }
-  get(path, handler) {
+  get(path, ...handlers) {
     // 存放路由
-    this.router.get(path, handler);
+    this.router.get(path, handlers);
   }
   listen() {
     const httpServer = http.createServer((req, res) => {
