@@ -18,10 +18,6 @@ class Application {
     // 存放路由表 每个应用都有自己单独的路由
     // this.router = new Router();
   }
-  get(path, ...handlers) {
-    // 存放路由
-    this.router.get(path, handlers);
-  }
   listen() {
     const httpServer = http.createServer((req, res) => {
       this.lazyRoute();
@@ -31,7 +27,16 @@ class Application {
   }
   lazyRoute() {
     // 存放路由表 每个应用都有自己单独的路由
-    this.router = new Router();
+    if (!this.router) this.router = new Router();
+  }
+  /**
+   * 注册中间件
+   * @param {string} path
+   * @param  {...Function} handlers
+   */
+  use(path, ...handlers) {
+    this.lazyRoute();
+    this.router.use(...arguments);
   }
 }
 // 生成方法

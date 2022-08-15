@@ -18,10 +18,21 @@ class Router {
     this.#stack.push(layer);
     return route;
   }
-  get(path, handlers) {
-    // 需要先产生route才能创建layer
-    const route = this.route(path);
-    route.get(handlers); // 将用户的回调传递给了route路由表中
+  /**
+   *
+   * 路由的逻辑要匹配方法和路径 但是中间件要求匹配路径即可
+   * @memberof Router
+   */
+  use(path, ...handlers) {
+    if (typeof path !== "string") {
+      handlers.unshift(path);
+      path = "/";
+    }
+    handlers.forEach((handler) => {
+      const layer = new Layer(path, handler);
+      layer.route = undefined;
+      this.#stack.push(layer);
+    });
   }
   /**
    *
@@ -33,19 +44,35 @@ class Router {
     const { pathname: reqUrl } = url.parse(req.url);
     // 请求到来后，我们需要去stack中进行筛查
     let idx = 0;
-    const next = () => {
+    // route的routeNext产生错误 就来到router的next了
+    const next = (error) => {
+      const layer = this.#stack[idx++];
+      if (error) {
+        // 出现错误 一直向后找 找错误处理中间件
+        if (!layer.route) {
+          // 中间件
+          return layer.handleError(error, req, res, next);
+        }
+        return next(error);
+      }
       // 没找到
       if (idx >= this.#stack.length) return out(req, res);
-      const layer = this.#stack[idx++];
-      if (
-        layer.match(reqUrl) &&
-        (
-          layer.route.methods[req.method.toLowerCase()] // 有没有这种类型的请求
-          || layer.route.methods['all'] // all标识所有类型请求都可以
-        )
-      ) {
-        // 路径匹配了 交给route来处理 如果route处理完 可以调用next从上一个layer到下一个layer
-        layer.handleRequest(req, res, next); // dispatch
+      if (layer.match(reqUrl)) {
+        if (
+          layer.route // 是路由
+        ) {
+          if (
+            layer.route.methods[req.method.toLowerCase()] || // 有没有这种类型的请求
+            layer.route.methods["all"] // all标识所有类型请求都可以
+          )
+            // 路径匹配了 交给route来处理 如果route处理完 可以调用next从上一个layer到下一个layer
+            layer.handleRequest(req, res, next); // dispatch
+        } else {
+          // 是中间件 layer.route === undefined
+          // 如果是错误处理中间件 跳过当前中间件
+          if (layer.handle.length === 4) return next();
+          layer.handleRequest(req, res, next);
+        }
       } else {
         next();
       }

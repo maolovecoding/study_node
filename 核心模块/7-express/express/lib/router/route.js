@@ -22,7 +22,11 @@ class Route {
    */
   dispatch(req, res, next) {
     let idx = 0;
-    const routeNext = () => {
+    const routeNext = (error) => {
+      if (error) {
+        // 产生错误 直接去下一个router
+        return next(error);
+      }
       // 执行下一个path layer
       if (idx >= this.stack.length) return next(req, res);
       // 拿到route layer
