@@ -3,9 +3,11 @@ lockfileVersion: 5.4
 specifiers:
   express: ^4.18.1
   methods: ^1.1.2
+  path-to-regexp: ^6.2.1
 
 dependencies:
   methods: registry.npmmirror.com/methods/1.1.2
+  path-to-regexp: registry.npmmirror.com/path-to-regexp/6.2.1
 
 devDependencies:
   express: registry.npmmirror.com/express/4.18.1
@@ -376,6 +378,12 @@ packages:
     name: path-to-regexp
     version: 0.1.7
     dev: true
+
+  registry.npmmirror.com/path-to-regexp/6.2.1:
+    resolution: {integrity: sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/path-to-regexp/-/path-to-regexp-6.2.1.tgz}
+    name: path-to-regexp
+    version: 6.2.1
+    dev: false
 
   registry.npmmirror.com/proxy-addr/2.0.7:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/proxy-addr/-/proxy-addr-2.0.7.tgz}

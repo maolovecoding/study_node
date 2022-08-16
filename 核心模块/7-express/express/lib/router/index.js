@@ -58,6 +58,8 @@ class Router {
       // 没找到
       if (idx >= this.#stack.length) return out(req, res);
       if (layer.match(reqUrl)) {
+        // 路径参数
+        req.params = layer.params;
         if (
           layer.route // 是路由
         ) {

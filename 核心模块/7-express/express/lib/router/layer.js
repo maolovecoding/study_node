@@ -1,3 +1,4 @@
+const { pathToRegexp } = require("path-to-regexp");
 /**
  *
  */
@@ -5,6 +6,7 @@ class Layer {
   constructor(path, handle) {
     this.path = path;
     this.handle = handle;
+    this.regexp = pathToRegexp(path, (this.keys = []), { strict: true });
   }
   match(pathname) {
     // 区分路由和中间件 匹配规则
@@ -13,6 +15,15 @@ class Layer {
       // 中间件
       if (this.path === "/") return true; // 匹配所有
       if (pathname.startWith(this.path + "/")) return true; // 以路径开头
+    }
+    if (this.route) {
+      // 路由模糊匹配 路径参数
+      const [, ...args] = pathname.match(this.regexp);
+      this.params = this.keys.reduce(
+        (memo, curr, index) => ((memo[curr.name] = args[index]), memo),
+        {}
+      );
+      return true;
     }
     return false;
   }
