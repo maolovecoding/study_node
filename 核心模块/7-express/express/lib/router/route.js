@@ -28,7 +28,7 @@ class Route {
         return next(error);
       }
       // 执行下一个path layer
-      if (idx >= this.stack.length) return next(req, res);
+      if (idx >= this.stack.length) return next();
       // 拿到route layer
       const routerLayer = this.stack[idx++];
       if (

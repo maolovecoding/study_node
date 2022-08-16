@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 
 app.get("/", (req, res, next) => {
   console.log("1");
-  next();
+  next('error1');
 });
 app.get("/", (req, res) => {
   res.setHeader("content-type", "text/plain;charset=utf8");
@@ -32,7 +32,7 @@ app.get("/user", (req, res) => {
 // 4个参数 错误优先 前面只要给next传递的参数，就会认为是错误
 app.use("/", (error, req, res, next) => {
   console.log(error, "---------------");
-  res.end("error");
+  res.end(error);
 });
 // 启动服务
 app.listen(3000, () => {
