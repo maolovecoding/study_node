@@ -18,7 +18,9 @@ class Layer {
     }
     if (this.route) {
       // 路由模糊匹配 路径参数
-      const [, ...args] = pathname.match(this.regexp);
+      const matches = pathname.match(this.regexp);
+      if (!matches) return false;
+      const [, ...args] = matches;
       this.params = this.keys.reduce(
         (memo, curr, index) => ((memo[curr.name] = args[index]), memo),
         {}

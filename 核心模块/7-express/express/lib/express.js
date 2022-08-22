@@ -1,4 +1,5 @@
 const Application = require("./application.");
+const _Router = require("./router");
 
 /**
  * express
@@ -8,7 +9,9 @@ function createAppApplication() {
   // app
   return new Application();
 }
-
+createAppApplication.Router = function () {
+  return new _Router();
+};
 // express = createAppApplication
 module.exports = createAppApplication;
 

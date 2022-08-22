@@ -47,6 +47,8 @@ methods.concat("all").forEach((method) => {
   Route.prototype[method] = function (handlers) {
     // /增加标识
     this.methods[method] = true;
+    // 参数转为数组
+    if (!Array.isArray(handlers)) handlers = [...arguments];
     handlers.forEach((handler) => {
       // path用不到
       const layer = new Layer("*", handler);
