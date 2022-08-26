@@ -1,8 +1,10 @@
 const http = require("http");
+const EventEmitter = require("events");
 const context = require("./context");
 const request = require("./request");
 const response = require("./response");
-class Application {
+const { Stream } = require("stream");
+class Application extends EventEmitter {
   // 实现每个应用都有自己单独的上下文 应用级别的隔离
   context = Object.create(context);
   request = Object.create(request);
@@ -11,7 +13,6 @@ class Application {
   middlewares = [];
   use(middleware) {
     this.middlewares.push(middleware);
-    console.log(this.middlewares);
   }
   /**
    *
@@ -20,21 +21,24 @@ class Application {
   createContext(req, res) {
     const ctx = Object.create(this.context);
     const request = Object.create(this.request);
-    const response = Object.create(this.request);
+    const response = Object.create(this.response);
     ctx.request = request; // koa封装的request属性
     ctx.request.req = ctx.req = req; // 原生的http req属性
     ctx.response = response;
     ctx.response.res = ctx.res = res;
-    console.log(ctx.response === ctx.res)
     return ctx;
   }
   compose(ctx) {
     const len = this.middlewares.length;
     const dispatch = (index) => {
       if (len === index) return Promise.resolve();
-      return Promise.resolve(() =>
-        this.middlewares[index](ctx, () => dispatch(index + 1))
-      );
+      try {
+        return Promise.resolve(
+          this.middlewares[index](ctx, () => dispatch(index + 1))
+        );
+      } catch (err) {
+        return Promise.reject(err);
+      }
     };
     return dispatch(0);
   }
@@ -44,18 +48,23 @@ class Application {
     this.compose(ctx)
       .then(() => {
         const _body = ctx.body;
-        console.log("----------", ctx.body);
         if (!_body) {
           return res.end("Not Found");
         }
         res.setHeader("content-type", "text/plain;charset=utf8");
         if (typeof _body === "string" || Buffer.isBuffer(_body)) {
           return res.end(_body);
+        } else if (_body instanceof Stream) {
+          // 流
+          return _body.pipe(res);
         } else if (typeof _body === "object") {
           return res.end(JSON.stringify(_body));
         }
       })
-      .catch((err) => {});
+      // 统一捕获异常
+      .catch((err) => {
+        this.emit("error", err, ctx);
+      });
   }
   listen() {
     const server = http.createServer((req, res) =>
